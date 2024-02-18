@@ -26,29 +26,40 @@ def connection():
     except mysql.connector.Error as err:
         print("Error", err)
         
-    
-def sql(conn):
-    try:
-        global cursor
-        cursor = conn.cursor()
-        cursor.execute("DROP DATABASE IF EXISTS HealthManagement")
-        db1 = "CREATE DATABASE HealthManagement"; cursor.execute(db1)
-        usedb1 = "USE HealthManagement";  cursor.execute(usedb1)
-        table = "CREATE TABLE UserCredentials(ID int(10), NAME varchar(100), Email varchar(100), Username varchar(100), Address varchar(250), Password varchar(16))"
-        cursor.execute(table)
+#WHEN YOU ARE EXECUTING THE PROGRAM FOR THE FIRST TIME, THEN ONLY THIS SQL FUNCTION WILL HAVE TO BE EXECUTED, NOT AFTER THAT, OTHERWISE IT WILL DROP THE DATABASE CREATED BEFORW AND ALL ENTERIES WILL BE DELETED
+#WHILE EXECUTING FOR 2ND TIME, WE COMMENT OUT THIS PART    
+# def sql(conn):
+#     try:
+#         global cursor
+#         cursor = conn.cursor()
+#         cursor.execute("DROP DATABASE IF EXISTS HealthManagement")
+#         db1 = "CREATE DATABASE HealthManagement"; cursor.execute(db1)
+#         usedb1 = "USE HealthManagement";  cursor.execute(usedb1)
+#         table = "CREATE TABLE UserCredentials(ID int(10), NAME varchar(100), Email varchar(100), Username varchar(100), Address varchar(250), Password varchar(16))"
+#         cursor.execute(table)
 
-        conn.commit()
-        cursor.close()
-    except mysql.connector.Error as err:
-        print("error", err)
+#         conn.commit()
+#         cursor.close()
+#     except mysql.connector.Error as err:
+#         print("error", err)
+
+#THIS FUNCTION IS BEING USED TO ACCESS THE DATABASE, only if executed 2nd time
         
+def use_database(conn):
+    cursor = conn.cursor()
+    use_db = "USE HealthManagement"; cursor.execute(use_db)
+
+    conn.commit()
+    cursor.close()
+
 
     
 def password():
-    str1 = 12345678890
-    str2 = "!@#$%^&*()"
-    str3 = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm"
 
+    
+    
+    str1 = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm12344567890!@#$^&*()"
+    
     
     global passw ; passw = ""
     user_input = int(input("Enter how long you want the length of your pasword: "))
@@ -58,9 +69,9 @@ def password():
         
     else:
         for i in range(0, user_input):
-            next_char = random.choice(str1, str2, str3)
+            next_char = random.choice(str1)
             passw = passw + next_char
-        print("Your Password has been successfully stored")
+        
 
 def insert_values(name, email, username, address, Password):
     try:
@@ -83,7 +94,7 @@ def login(conn, username, passw):
         if result:
             print("Logged in successfully\n")
             print("Hello welcome to the FITNESS MANAGEMENT PORTAL")
-            #execute health function which we will create later
+            #execute HEALTH()
 
 
 
@@ -94,9 +105,11 @@ def login(conn, username, passw):
         print("Error", err)
 
 def main():
+    
     conn = connection()
+    use_database(conn)
     if conn:
-        sql(conn)
+        # sql(conn)
         while True:
             print("1 for Login")
             print(" 2 for Add a new user")
@@ -110,6 +123,9 @@ def main():
                 passw = input("Enter your password :")
                 
                 login(conn, username, passw)
+
+                if login:
+                    break
                     
                 
             elif choice == 2:
@@ -117,18 +133,32 @@ def main():
                 
                 name = input("Enter your name: ")
                 username = input("enter your username: ")
-                pass_query = input("Do you want to input your password or wanna generate a new one")
+                email = input("enter your email: ")
+                address = input("enter your address: ")
+                pass_query = input("Do you want to input your password or wanna generate a new one: (INPUT/GENERATE: )")
                 if pass_query == "Generate" or pass_query =="generate" or pass_query == "GENERATE":
-                    password()
+                    passw = password()
+                    print(passw)
+                    insert_values(name, email, username, address, passw)
+
+                    if insert_values:
+                        print("Your data has been successfully added: ")
                 elif pass_query == "Input" or pass_query =="input" or pass_query == "INPUT":
                     while True:
                         input_pass = input("Enter your password: ")
                         if len(input_pass) < 8:
                             print("Please enter a stronger password: ")
                         else:
+                            print("Your input password is stored")
+                            store_pass = input_pass
+                            insert_values(name, email, username, address, store_pass)
                             break
+                else:
+                    print("INVALID INPUT")
+                
                     
             elif choice == 3:
+                print("You have successfully exited out of this program: ")
                 break
     else:
         print("Connection not established, there is an issue with the portal, please check the host and the user credentials for yur sql connection")
